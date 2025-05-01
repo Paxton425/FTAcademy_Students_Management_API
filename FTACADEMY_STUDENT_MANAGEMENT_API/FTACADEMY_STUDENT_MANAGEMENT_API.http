@@ -1,0 +1,6 @@
+@FTACADEMY_STUDENT_MANAGEMENT_API_HostAddress = http://localhost:5055
+
+GET {{FTACADEMY_STUDENT_MANAGEMENT_API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
