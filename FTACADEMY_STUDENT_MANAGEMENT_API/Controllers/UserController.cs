@@ -27,9 +27,17 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
         [HttpGet]
         [Route("user_profile/{userID:int}")]
         public IActionResult GetUserProfile(int userID)
-        { 
-            var userProfile = _dbContext.Users.Find(userID);
-            return Ok(userProfile);
+        {
+            try
+            {
+                var userProfile = _dbContext.Users.Find(userID);
+                return Ok(userProfile);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Could not get user by id: {userID} \n{ex.StackTrace}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         [HttpGet]
