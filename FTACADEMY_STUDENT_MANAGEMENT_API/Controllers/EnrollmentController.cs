@@ -10,8 +10,8 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
     [ApiController]
     public class EnrollmentController : ControllerBase
     {
-        private readonly FtacademyStudentManagementContext _dbContext;
-        public EnrollmentController(FtacademyStudentManagementContext dbContext)
+        private readonly ApplicationDbContext _dbContext;
+        public EnrollmentController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -20,6 +20,7 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
         public IActionResult GetEnrollments()
         {
             var enrollments = _dbContext.Enrollments.ToList();
+
             return Ok(enrollments);
         }
 

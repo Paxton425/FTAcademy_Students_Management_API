@@ -12,8 +12,8 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly FtacademyStudentManagementContext _dbContext;
-        public StudentsController(FtacademyStudentManagementContext dbContext)
+        private readonly ApplicationDbContext _dbContext;
+        public StudentsController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -61,7 +61,7 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
                     Enrollments = s.Enrollments.Select(e => new
                     {
                         e.QualificationId,
-                        QualificationName = e.Qualification.QualificationName,
+                        Qualification = e.Qualification,
                         e.EnrollmentDate,
                     }).ToList(),
                     s.PhoneNumber,
@@ -285,6 +285,7 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
                     studentToUpdate.FirstName = UpdatedStudent.FirstName;
                     studentToUpdate.LastName = UpdatedStudent.LastName;
                     studentToUpdate.StudentNumber = UpdatedStudent.StudentNumber;
+                    studentToUpdate.ProfileImageUrl = UpdatedStudent.ProfileImageUrl;
                     studentToUpdate.Email = UpdatedStudent.Email;
                     studentToUpdate.DateOfBirth = UpdatedStudent.DateOfBirth;
                     studentToUpdate.PhoneNumber = UpdatedStudent.PhoneNumber;

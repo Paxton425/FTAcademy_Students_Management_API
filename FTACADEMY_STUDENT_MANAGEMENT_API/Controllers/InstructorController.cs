@@ -11,8 +11,8 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
     [ApiController]
     public class InstructorController : ControllerBase
     {
-        private readonly FtacademyStudentManagementContext _dbContext;
-        public InstructorController(FtacademyStudentManagementContext dbContext)
+        private readonly ApplicationDbContext _dbContext;
+        public InstructorController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -35,10 +35,9 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
             var instructorsProfiles = await query.Select(s => new
             {
                 s.InstructorId,
-                FirstName = s.User.FirstName,
-                LastName = s.User.LastName,
+                User = s.User,
                 s.StaffNumber,
-                Department = s.Dept.DepartmentName,
+                Dept = s.Dept,
                 Courses = s.Courses.Select(c => new { 
                         c.CourseName,
                     })
@@ -51,16 +50,46 @@ namespace FTACADEMY_STUDENT_MANAGEMENT_API.Controllers
                 
         }
 
-        [HttpGet("instructor_profile/{id:int}")]
-        public IActionResult getInstructor(int id)
+        [HttpGet("instructor_profile/{instructorId:int}")]
+        public async Task<ActionResult<Instructor>> getInstructor(int instructorId)
         {
-            var instructor = _dbContext.Instructors.Find(id);
-            if (instructor != null)
+            try
             {
-                return Ok(instructor);
+                IQueryable<Instructor> query = _dbContext.Instructors
+                .Include(u => u.User)
+                .Include(q => q.Qualifications)
+                .ThenInclude(d => d.Dept)
+                .Include(c => c.Courses).Where(i => i.InstructorId == instructorId);
+
+                var instructorsProfile = await query.Select(i => new
+                {
+                    i.InstructorId,
+                    User = i.User,
+                    i.StaffNumber,
+                    Dept = i.Dept,
+                    Qualifications = i.Qualifications.Select(q => new { 
+                        q.QualificationId,
+                        q.QualificationName,
+                        Dept = q.Dept
+                    }),
+                    Courses = i.Courses.Select(c => new {
+                        c.CourseName,
+                        c.CourseCode,
+                    })
+                }).FirstOrDefaultAsync();
+
+                if (instructorsProfile != null)
+                {
+                    return Ok(instructorsProfile);
+                }
+                else
+                    return NotFound();
             }
-            else
-                return NotFound();
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
         [HttpPost("add_instructor")]
