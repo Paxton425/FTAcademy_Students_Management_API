@@ -74,7 +74,7 @@ jobs:
       # Logs into Azure using the service principal credentials
       uses: azure/login@v2
       with:
-        creds: ${{ secrets.FTAcademyStudentMnagementAPI }} # Azure service principal credentials stored as a GitHub secret
+        creds: ${{ secrets.FTACADEMYSTUDENTMNAGEMENTAPI }} # Azure service principal credentials stored as a GitHub secret
 
     - name: Deploy to Azure WebApp
       # Deploys the downloaded package to the specified Azure Web App
