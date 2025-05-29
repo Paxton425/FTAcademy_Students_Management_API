@@ -1,4 +1,4 @@
-name: Build and deploy .NET Core application to Web App FTAcademyStudentMnagementAPI
+name: Build and deploy .NET Core application to Web App FTAcademyStudentMnagementAPI 
 
 on:
   push:
@@ -7,12 +7,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: FTAcademyStudentMnagementAPI # Name of your Azure Web App
-  # Define the path to your main web project file (.csproj) relative to the repository root.
-  # IMPORTANT: Replace 'FTACADEMY_STUDENT_MANAGEMENT_API/FTACADEMY_STUDENT_MANAGEMENT_API.csproj'
-  # with the actual path to your API project file.
   WEB_PROJECT_PATH: FTACADEMY_STUDENT_MANAGEMENT_API/FTACADEMY_STUDENT_MANAGEMENT_API.csproj
-  # Define the output path for the published application. This will be created by 'dotnet publish'.
-  # It's relative to the repository root.
   AZURE_WEBAPP_PACKAGE_PATH: ./published_app_output
   CONFIGURATION: Release # Build configuration (e.g., Debug, Release)
   DOTNET_CORE_VERSION: 8.0.x # .NET SDK version to use
@@ -22,63 +17,56 @@ jobs:
     runs-on: windows-latest # Use a Windows runner for .NET development
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4 # Checks out your repository code
+      uses: actions/checkout@v4
 
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4 # Installs the specified .NET SDK version
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
     - name: Restore NuGet packages
-      # Restores dependencies for the specified web project
       run: dotnet restore "${{ env.WEB_PROJECT_PATH }}"
 
     - name: Build Project
-      # Builds the specified web project in the defined configuration, skipping restore
       run: dotnet build "${{ env.WEB_PROJECT_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-restore
 
     - name: Run Tests
-      # Runs tests for the specified web project, skipping build
       # IMPORTANT: If you don't have a test project or this step fails, you can remove it.
       run: dotnet test "${{ env.WEB_PROJECT_PATH }}" --no-build
 
     - name: Publish Application
-      # Publishes the web application to the defined output path
       run: dotnet publish "${{ env.WEB_PROJECT_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
     - name: List Published Files (for debugging)
-      # This step helps verify that 'dotnet publish' actually put files in the expected directory.
-      # Review the logs for this step if you still encounter 'artifact not found' errors.
       run: dir "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-      continue-on-error: true # Allows the workflow to continue even if this step fails (e.g., path not found)
+      continue-on-error: true
 
     - name: Upload Artifact
-      # Uploads the published application files as an artifact named 'webapp'
       uses: actions/upload-artifact@v4
       with:
-        name: webapp # The name of the artifact to upload
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} # The directory containing the files to upload
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
   deploy:
     runs-on: windows-latest # Use a Windows runner for deployment
     needs: build # This ensures the 'deploy' job runs only after the 'build' job completes successfully
     steps:
     - name: Download Artifact from Build Job
-      # Downloads the 'webapp' artifact uploaded by the 'build' job
       uses: actions/download-artifact@v4
       with:
-        name: webapp # The name of the artifact to download (must match the upload name)
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} # The local path where the artifact will be downloaded
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-    - name: Azure Login
-      # Logs into Azure using the service principal credentials
-      uses: azure/login@v2
-      with:
-        publish-profile: ${{ secrets.FTACADEMYSTUDENTMNAGEMENTAPI }} # Azure publish profile stored as a GitHub secret
+    # REMOVE THIS STEP: You do NOT need azure/login when using a publish profile with azure/webapps-deploy
+    # - name: Azure Login
+    #   uses: azure/login@v2
+    #   with:
+    #     publish-profile: ${{ secrets.FTACADEMYSTUDENTMNAGEMENTAPI }}
 
     - name: Deploy to Azure WebApp
-      # Deploys the downloaded package to the specified Azure Web App
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v2   # This action will handle the authentication using the publish profile you provide
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }} # The name of the Azure Web App
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} # The path to the package to deploy
+        # Pass the publish profile directly to azure/webapps-deploy
+        publish-profile: ${{ secrets.FTACADEMYSTUDENTMNAGEMENTAPI }} # Your Azure publish profile secret
